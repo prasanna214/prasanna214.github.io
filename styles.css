@@ -1,0 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Caveat:wght@400;500&display=swap');
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #FAF3E8;
+  background-image: radial-gradient(rgba(255,255,245,0.65), rgba(240,230,210,0.9)), url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+  font-family: "Caveat", cursive;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #1A1A1A;
+}
+
+header {
+  padding: 60px 20px 30px;
+  text-align: center;
+}
+
+h1 {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 3rem;
+  font-weight: 500;
+  margin: 0;
+  color: #3E5F49;
+  letter-spacing: 0.5px;
+}
+
+p.tagline {
+  font-family: "Caveat", cursive;
+  font-size: 1.4rem;
+  margin-top: 12px;
+  color: #6B675D;
+}
+
+nav.corners {
+  margin: 20px 0;
+}
+
+nav.corners ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  font-family: "Caveat", cursive;
+  font-size: 1.25rem;
+  color: #3E5F49;
+}
+
+nav.corners li {
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+nav.corners li:hover {
+  background-color: #EDE3D6;
+  text-shadow: 0 0 6px rgba(255, 220, 180, 0.6);
+}
+
+#content-box {
+  width: 90%;
+  max-width: 750px;
+  min-height: 200px;
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 30px;
+  margin-bottom: 60px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+  transition: all 0.4s ease;
+  font-family: "Caveat", cursive;
+  font-size: 1.3rem;
+  line-height: 1.7;
+}
+
+footer {
+  margin: 40px 0 30px;
+  font-size: 0.9rem;
+  color: #3E5F49;
+  text-align: center;
+}
+
+/* Responsive */
+@media(max-width: 600px){
+  h1 { font-size: 2.2rem; }
+  nav.corners ul { flex-direction: column; gap: 15px; }
+  #content-box { padding: 20px; font-size: 1.15rem; }
+}
+
+a.topic-link {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 500;
+  font-size: 1.25rem;
+  color: #3E5F49;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background-color: #F6F2E8;
+  transition: all 0.3s ease;
+}
+
+a.topic-link:hover {
+  background-color: #EDE3D6;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+  color: #2C3E2D;
+  transform: translateY(-1px);
+}
+
+/* Optional: add a small icon before each link for aesthetic touch */
+a.topic-link::before {
+  content: "❧";
+  margin-right: 8px;
+  color: #A98E6E;
+}
