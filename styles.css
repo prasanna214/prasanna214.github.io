@@ -129,3 +129,7 @@ a.topic-link::before {
   margin-right: 8px;
   color: #A98E6E;
 }
+
+a.topic-link-selected {
+  background-color:#EDE3D6;
+}
