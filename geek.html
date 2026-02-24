@@ -53,8 +53,10 @@
     }
 
     * {
-      scrollbar-width: none; /* Firefox */
-      -ms-overflow-style: none; /* IE/Edge */
+      scrollbar-width: none;
+      /* Firefox */
+      -ms-overflow-style: none;
+      /* IE/Edge */
     }
 
     /* Padding for xterm container */
@@ -125,7 +127,8 @@
 
     .slider {
       background-color: rgba(0, 255, 65, 0.4);
-      box-shadow: 0 0 15px rgba(0, 255, 65, 0.6); /* Slightly stronger track glow when fully active */
+      box-shadow: 0 0 15px rgba(0, 255, 65, 0.6);
+      /* Slightly stronger track glow when fully active */
     }
 
     .slider:before {
@@ -325,7 +328,7 @@
       term.writeln(`Last login: ${timeString} on console`);
       term.writeln("Welcome to Mizar & Alcor OS (guest user)");
       term.writeln("");
-      
+
       showHelp();
       prompt();
 

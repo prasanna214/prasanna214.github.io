@@ -30,8 +30,10 @@
       color: var(--star-white);
       font-family: 'Cormorant Garamond', serif;
       overflow-x: hidden;
-      scrollbar-width: none; /* Firefox */
-      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none;
+      /* Firefox */
+      -ms-overflow-style: none;
+      /* IE and Edge */
     }
 
     /* Hide Chrome/Safari/Edge scrollbar */
@@ -241,13 +243,14 @@
       transition: all 0.3s ease;
       display: flex;
       align-items: center;
-      gap: 8px; /* Space between icon and text */
+      gap: 8px;
+      /* Space between icon and text */
     }
 
     .location-link:hover {
       text-shadow: 0 0 10px var(--star-gold);
     }
-    
+
     .map-pin {
       width: 18px;
       height: 18px;
@@ -258,7 +261,7 @@
       stroke-linejoin: round;
       transition: all 0.3s ease;
     }
-    
+
     .location-link:hover .map-pin {
       filter: drop-shadow(0 0 5px var(--star-gold));
     }
@@ -268,7 +271,8 @@
       margin-top: 45px;
       padding: 14px 30px;
       border: 1px solid var(--star-gold);
-      background: rgba(207, 170, 94, 0.1); /* Very subtle gold tint */
+      background: rgba(207, 170, 94, 0.1);
+      /* Very subtle gold tint */
       color: var(--star-gold);
       text-decoration: none;
       font-family: 'Cinzel', serif;
@@ -429,26 +433,129 @@
       transition: opacity 0.8s ease, visibility 0.8s;
     }
 
-    .overlay-text {
-      font-size: 1.5rem;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      animation: pulse 2s infinite;
+    .envelope-wrapper {
+      position: relative;
+      width: 320px;
+      height: 200px;
+      cursor: pointer;
+      perspective: 1000px;
+      margin-bottom: 40px;
     }
 
-    .overlay-subtext {
-      margin-top: 15px;
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.1rem;
+    .envelope-base {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--night-bg);
+      border: 1px solid var(--star-gold);
+      border-radius: 4px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 0 40px rgba(207, 170, 94, 0.1);
+      overflow: hidden;
+      z-index: 2;
+    }
+
+    .envelope-base::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      border-left: 160px solid rgba(207, 170, 94, 0.08);
+      /* Half width */
+      border-right: 160px solid rgba(207, 170, 94, 0.08);
+      border-bottom: 100px solid rgba(207, 170, 94, 0.15);
+      /* Half height */
+      border-top: 100px solid transparent;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+    }
+
+    .envelope-flap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-left: 160px solid transparent;
+      border-right: 160px solid transparent;
+      border-top: 110px solid var(--night-bg);
+      transform-origin: top;
+      transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+      z-index: 10;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6));
+    }
+
+    .envelope-flap-border {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-left: 162px solid transparent;
+      border-right: 162px solid transparent;
+      border-top: 112px solid var(--star-gold);
+      transform-origin: top;
+      transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+      z-index: 9;
+      transform: translateX(-2px) translateY(-1px);
+    }
+
+    .envelope-wrapper.open .envelope-flap,
+    .envelope-wrapper.open .envelope-flap-border {
+      transform: rotateX(180deg);
+      z-index: 1;
+    }
+
+    .heart-seal {
+      position: absolute;
+      top: 110px;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 40px;
+      color: #e63946;
+      text-shadow: 0 0 15px rgba(230, 57, 70, 0.6);
+      z-index: 15;
+      transition: all 0.4s ease;
+    }
+
+    .envelope-wrapper:hover .heart-seal {
+      transform: translate(-50%, -50%) scale(1.15);
+      text-shadow: 0 0 25px rgba(230, 57, 70, 0.9);
+    }
+
+    .envelope-wrapper.open .heart-seal {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(1.5);
+    }
+
+    .envelope-msg {
+      position: absolute;
+      bottom: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      text-align: center;
+      font-family: 'Cinzel', serif;
       color: var(--star-white);
-      letter-spacing: 2px;
-      font-style: italic;
+      letter-spacing: 3px;
+      animation: pulse 2s infinite;
+      white-space: nowrap;
     }
 
     @keyframes pulse {
-      0% { opacity: 0.7; }
-      50% { opacity: 1; }
-      100% { opacity: 0.7; }
+      0% {
+        opacity: 0.7;
+      }
+
+      50% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0.7;
+      }
     }
   </style>
 </head>
@@ -456,8 +563,13 @@
 <body>
 
   <div id="audio-overlay">
-    <div class="overlay-text">Click Anywhere</div>
-    <div class="overlay-subtext">to experience the magic</div>
+    <div class="envelope-wrapper" id="envelope">
+      <div class="envelope-base"></div>
+      <div class="envelope-flap-border"></div>
+      <div class="envelope-flap"></div>
+      <div class="heart-seal">❤️</div>
+      <div class="envelope-msg">Tap to Open</div>
+    </div>
   </div>
 
   <div class="toggle-container">
@@ -482,7 +594,7 @@
       </svg>
 
       <div class="astronomical-quote">
-        "Of the universe's infinite stories,<br>the one we are writing together is our favorite."
+        "Of the universe's infinite stories,<br>the one we are writing together is my favorite."
       </div>
 
       <div class="separator"></div>
@@ -499,11 +611,12 @@
         request the pleasure of your company<br>
         at their wedding reception
       </div>
-      
+
       <div class="details-box" style="margin-top: 0;">
         Sunday, 15 March 2026 at 11:00 AM
         <div class="location">
-          <a href="https://maps.app.goo.gl/7WDtS5qKhP9vLoWbA" target="_blank" rel="noopener noreferrer" class="location-link">
+          <a href="https://maps.app.goo.gl/7WDtS5qKhP9vLoWbA" target="_blank" rel="noopener noreferrer"
+            class="location-link">
             <svg class="map-pin" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
               <circle cx="12" cy="10" r="3"></circle>
@@ -527,7 +640,7 @@
     starField.appendChild(universe);
 
     // Create background stars
-                        for (let i = 0; i < 800; i++) {
+    for (let i = 0; i < 800; i++) {
       const star = document.createElement('div');
       star.className = 'star';
       // Make stars slightly larger (0.5px to 3px)
@@ -558,8 +671,8 @@
       setTimeout(() => ss.remove(), 3000);
     }
 
-                        // Increase frequency of shooting stars
-                        setInterval(createShootingStar, 800);
+    // Increase frequency of shooting stars
+    setInterval(createShootingStar, 800);
 
     // Handle Geek Mode Toggle smoothly so audio isn't interrupted
     function setupSmoothNavigation() {
@@ -609,20 +722,29 @@
       // Universal click handler for the overlay
       if (overlay) {
         overlay.addEventListener('click', function () {
+          const envelope = document.getElementById('envelope');
+          if (envelope) {
+            envelope.classList.add('open');
+          }
+
           audio.play().then(() => {
             sessionStorage.setItem('audioPlaying', 'true');
           }).catch((err) => console.log("Audio play failed:", err));
-          overlay.style.opacity = '0';
+
+          // Delay the fade out to let the envelope open animation play
           setTimeout(() => {
-            overlay.style.display = 'none';
-          }, 800);
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+              overlay.style.display = 'none';
+            }, 800);
+          }, 600);
         });
       }
 
       if (wasPlaying === 'true') {
         // Try playing without the overlay
         if (overlay) overlay.style.display = 'none';
-      
+
         audio.play().then(() => {
           sessionStorage.setItem('audioPlaying', 'true');
         }).catch(() => {
