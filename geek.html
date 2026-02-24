@@ -346,6 +346,73 @@
           return;
         }
 
+        if (e === "\t" || e === "\x09") {
+          const commands = ["help", "ls", "cd", "cat", "clear"];
+          const words = input.split(" ");
+          const isCommand = words.length === 1;
+          const word = words[words.length - 1];
+
+          let matches = [];
+          let prefix = word;
+
+          if (isCommand) {
+            matches = commands.filter(c => c.startsWith(word));
+          } else {
+            let searchDir = currentDir;
+            if (word.includes("/")) {
+              const lastSlash = word.lastIndexOf("/");
+              let dirPart = word.substring(0, lastSlash);
+              prefix = word.substring(lastSlash + 1);
+
+              if (dirPart === "" || dirPart === "~") {
+                searchDir = "/";
+              } else {
+                searchDir = currentDir === "/" ? "/" + dirPart : currentDir + "/" + dirPart;
+              }
+              searchDir = searchDir.replace(/\/\//g, "/").replace(/\/$/, "");
+              if (searchDir === "") searchDir = "/";
+            }
+
+            let options = [];
+            if (searchDir === "/") {
+              options = ["reception/"];
+            } else if (searchDir === "/reception") {
+              options = ["invite.txt", "venue.txt", "schedule.txt", "dresscode.txt", "rsvp.txt"];
+            }
+
+            matches = options.filter(o => o.startsWith(prefix));
+          }
+
+          if (matches.length > 0) {
+            if (matches.length === 1) {
+              const completion = matches[0].substring(prefix.length);
+              input += completion;
+              term.write(completion);
+              if (!matches[0].endsWith("/")) {
+                input += " ";
+                term.write(" ");
+              }
+            } else {
+              let common = matches[0];
+              for (let i = 1; i < matches.length; i++) {
+                while (!matches[i].startsWith(common)) {
+                  common = common.substring(0, common.length - 1);
+                }
+              }
+              if (common.length > prefix.length) {
+                const completion = common.substring(prefix.length);
+                input += completion;
+                term.write(completion);
+              } else {
+                term.write("\r\n" + matches.join("  "));
+                prompt();
+                term.write(input);
+              }
+            }
+          }
+          return;
+        }
+
         if (e === "\x1b[A") {
           if (historyIndex > 0) {
             historyIndex--;
