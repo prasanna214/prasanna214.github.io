@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wedding Invitation</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+  <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      overflow: hidden;
+      font-family: monospace;
+    }
+
+    #matrix {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    #terminal {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 900px;
+      height: 80%;
+      max-height: 80vh;
+      z-index: 1;
+      background: rgba(0, 0, 0, 0.75);
+      padding: 10px;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0, 255, 65, 0.2);
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .toggle-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: monospace;
+      color: #00ff41;
+      font-size: 14px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 8px 12px;
+      border-radius: 30px;
+      border: 1px solid rgba(0, 255, 65, 0.3);
+      backdrop-filter: blur(4px);
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 255, 65, 0.2);
+      transition: .4s;
+      border-radius: 24px;
+      border: 1px solid #00ff41;
+      animation: glow-terminal 2s ease-in-out infinite;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #00ff41;
+      transition: .4s;
+      border-radius: 50%;
+      box-shadow: 0 0 5px #00ff41;
+    }
+
+    /* Since we are ON geek.html (Geek Mode is ON), the toggle is in the "checked" visual state */
+    .slider {
+      background-color: rgba(0, 255, 65, 0.4);
+    }
+
+    .slider:before {
+      transform: translateX(22px);
+    }
+
+    .toggle-switch input:focus+.slider {
+      box-shadow: 0 0 10px #00ff41;
+    }
+
+    @keyframes glow-terminal {
+
+      0%,
+      100% {
+        box-shadow: 0 0 5px rgba(0, 255, 65, 0.2);
+      }
+
+      50% {
+        box-shadow: 0 0 15px rgba(0, 255, 65, 0.6);
+      }
+    }
+
+    @media (max-width: 600px) {
+      #terminal {
+        width: 95%;
+        height: 90%;
+        max-height: 90vh;
+        padding: 5px;
+      }
+    }
+
+    .xterm {
+      height: 100%;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="matrix"></canvas>
+  <div id="terminal"></div>
+  <div class="toggle-container">
+    <span>Geek Mode</span>
+    <label class="toggle-switch">
+      <!-- Checked by default because we are IN Geek mode on geek.html -->
+      <input type="checkbox" checked onchange="window.location.href='index.html'">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <script>
+    /* ================= MATRIX BACKGROUND ================= */
+
+    const canvas = document.getElementById("matrix");
+    const ctx = canvas.getContext("2d");
+
+    // FIX: Declare fontSize BEFORE it is used anywhere
+    const letters = "01";
+    const fontSize = 14;
+
+    let columns = 0;
+    let drops = [];
+
+    function resizeCanvas() {
+      canvas.height = window.innerHeight;
+      canvas.width = window.innerWidth;
+
+      columns = Math.floor(canvas.width / fontSize);
+      drops = Array(columns).fill(1);
+    }
+
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    function drawMatrix() {
+      // Fade effect to create trailing letters
+      ctx.fillStyle = "rgba(0,0,0,0.08)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Matrix text color (medium bright)
+      ctx.fillStyle = "rgba(0, 255, 65, 0.6)";
+      ctx.font = fontSize + "px monospace";
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = letters.charAt(Math.floor(Math.random() * letters.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+
+        drops[i]++;
+      }
+    }
+
+    setInterval(drawMatrix, 35);
+
+    /* ================= TERMINAL ================= */
+
+    const term = new Terminal({
+      cursorBlink: true,
+      fontSize: window.innerWidth < 600 ? 14 : 16,
+      fontFamily: 'monospace',
+      theme: {
+        background: "transparent",
+        foreground: "#00ff41"
+      }
+    });
+
+    const fitAddon = new FitAddon.FitAddon();
+    term.loadAddon(fitAddon);
+
+    term.open(document.getElementById("terminal"));
+
+    // Ensure the terminal fits the container size
+    fitAddon.fit();
+    window.addEventListener("resize", () => {
+      term.options.fontSize = window.innerWidth < 600 ? 14 : 16;
+      fitAddon.fit();
+    });
+
+    /* ================= BOOT LOG ================= */
+
+    const bootLogs = [
+      "[   13.030000 ] Linux version 6.1.0-wedding (gcc 13.2.0)",
+      "[   13.030001 ] Command line: init=/sbin/systemd",
+      "[   13.031313 ] ACPI: Power coupling stable. Dynamic load balance between nodes: perfectly synced.",
+      "[   13.033313 ] systemd[1]: systemd 313 running in celebration mode.",
+      "",
+      "[   13.133313 ] systemd[1]: Starting compatibility-check.service...",
+      "[   13.303313 ] compatibility-check[42]: Status: Beyond optimal. Synergy level: 100%.",
+      "",
+      "[   13.333313 ] compatibility-check[42]: \u001b[31m\u001b[5mWARNING:\u001b[0m Single status deprecated and marked for deletion ♥",
+      "",
+      "[   13.553313 ] systemd[1]: Starting engagement.service...",
+      "[   13.883313 ] engagement.service: active (committed)",
+      "",
+      "[   16.030000 ] systemd[1]: Starting reception.service...",
+      "[   16.030313 ] reception.service: Guests invited to Reception Ceremony.",
+      "[   16.303313 ] systemd[1]: Startup finished successfully.",
+      ""
+    ];
+
+    let currentLine = 0;
+
+    function typeBoot() {
+      if (currentLine < bootLogs.length) {
+        term.writeln(bootLogs[currentLine]);
+        currentLine++;
+        setTimeout(typeBoot, 350);
+      } else {
+        startTerminal();
+      }
+    }
+
+    setTimeout(typeBoot, 800);
+
+    /* ================= COMMAND SYSTEM ================= */
+
+    let input = "";
+    let history = [];
+    let historyIndex = -1;
+    let currentDir = "/";
+    let inputEnabled = true;
+
+    const fileContents = {
+      "invite.txt": "You are invited to the Wedding Reception of\n\nPrasanna ❤️ Jaswanth\n\nWe would be honored by your presence.",
+      "venue.txt": "Venue: SS Function Hall\nAddress: Ubalanka",
+      "schedule.txt": "Date: Sunday, 15th March\nTime: 11:00 AM",
+      "dresscode.txt": "Dress Code: Traditional / Formal",
+      "rsvp.txt": "Kindly confirm your presence at the following link:\nhttps://docs.google.com/forms/d/e/1FAIpQLSe7vhfodFpy264ff0j1lU_ma7Anygdblk1I6apoLtxE6Icw9w/viewform\n\nWe look forward to celebrating with you!"
+    };
+
+    function prompt() {
+      if (!inputEnabled) return;
+      const dirDisp = currentDir === "/" ? "~" : "~" + currentDir;
+      term.write(`\r\nguest@login:${dirDisp}$ `);
+    }
+
+    function showHelp() {
+      term.writeln("Available commands:");
+      term.writeln("help        - Show available commands");
+      term.writeln("ls          - List files");
+      term.writeln("cd          - Enter directory");
+      term.writeln("cat         - Read file");
+      term.writeln("clear       - Clear screen");
+    }
+
+    function clearLine() {
+      while (input.length > 0) {
+        term.write("\b \b");
+        input = input.slice(0, -1);
+      }
+    }
+
+    function startTerminal() {
+      showHelp();
+      prompt();
+
+      term.attachCustomKeyEventHandler(ev => {
+        if (!inputEnabled) return false;
+        if (ev.ctrlKey && ev.key === "c") {
+          term.write("^C");
+          input = "";
+          prompt();
+          return false;
+        }
+
+        if (ev.ctrlKey && ev.key === "l") {
+          term.clear();
+          prompt();
+          return false;
+        }
+
+        return true;
+      });
+
+      term.onData(e => {
+        if (!inputEnabled) return;
+
+        if (e === "\r") {
+          term.write("\r\n");
+          runCommand(input.trim());
+
+          if (input.trim().length > 0) {
+            history.push(input);
+          }
+
+          historyIndex = history.length;
+          input = "";
+          prompt();
+          return;
+        }
+
+        if (e === "\u007F") {
+          if (input.length > 0) {
+            input = input.slice(0, -1);
+            term.write("\b \b");
+          }
+          return;
+        }
+
+        if (e === "\x1b[A") {
+          if (historyIndex > 0) {
+            historyIndex--;
+            clearLine();
+            input = history[historyIndex] || "";
+            term.write(input);
+          }
+          return;
+        }
+
+        if (e === "\x1b[B") {
+          if (historyIndex < history.length - 1) {
+            historyIndex++;
+            clearLine();
+            input = history[historyIndex] || "";
+            term.write(input);
+          } else {
+            historyIndex = history.length;
+            clearLine();
+            input = "";
+          }
+          return;
+        }
+
+        if (e.startsWith("\x1b")) return;
+
+        input += e;
+        term.write(e);
+      });
+    }
+
+    function runCommand(cmd) {
+      if (!cmd) return;
+      const args = cmd.split(" ").filter(Boolean);
+      const command = args[0].toLowerCase();
+
+      switch (command) {
+        case "help":
+          showHelp();
+          break;
+
+        case "ls":
+          let lsTarget = args[1];
+          let lsPath = currentDir;
+          if (lsTarget) {
+            if (lsTarget === "/" || lsTarget === "~") {
+              lsPath = "/";
+            } else {
+              lsPath = currentDir === "/" ? "/" + lsTarget : currentDir + "/" + lsTarget;
+            }
+            lsPath = lsPath.replace(/\/\//g, "/").replace(/\/$/, "");
+          }
+
+          if (lsPath === "" || lsPath === "/") {
+            term.writeln("reception/");
+          } else if (lsPath === "/reception") {
+            term.writeln("invite.txt  venue.txt  schedule.txt  dresscode.txt  rsvp.txt");
+          } else {
+            term.writeln(`ls: cannot access '${lsTarget}': No such file or directory`);
+          }
+          break;
+
+        case "cd":
+          let target = args[1];
+          if (!target || target === "~") {
+            currentDir = "/";
+          } else {
+            target = target.replace(/\/$/, "");
+            let nextDir = currentDir === "/" ? "/" + target : currentDir + "/" + target;
+            nextDir = nextDir.replace(/\/\//g, "/");
+
+            if (nextDir === "/reception") {
+              if (currentDir !== "/reception") {
+                currentDir = "/reception";
+              }
+            } else if (nextDir === "/" || target === "..") {
+              currentDir = "/";
+            } else if (target === ".") {
+              // do nothing
+            } else {
+              term.writeln(`cd: no such file or directory: ${args[1]}`);
+            }
+          }
+          break;
+
+        case "cat":
+          let file = args[1];
+          if (!file) {
+            term.writeln("cat: missing operand");
+            break;
+          }
+
+          let resolvedPath = currentDir === "/" ? "/" + file : currentDir + "/" + file;
+          resolvedPath = resolvedPath.replace(/\/\//g, "/");
+
+          if (resolvedPath === "/reception" || resolvedPath === "/reception/") {
+            term.writeln(`cat: ${file}: Is a directory`);
+          } else if (resolvedPath.startsWith("/reception/")) {
+            const fileName = resolvedPath.replace("/reception/", "");
+            if (fileName === "") {
+              term.writeln(`cat: ${file}: Is a directory`);
+            } else if (fileContents[fileName]) {
+              const lines = fileContents[fileName].split("\n");
+              for (let line of lines) {
+                term.writeln(line);
+              }
+            } else {
+              term.writeln(`cat: ${file}: No such file or directory`);
+            }
+          } else {
+            term.writeln(`cat: ${file}: No such file or directory`);
+          }
+          break;
+
+        case "clear":
+          term.clear();
+          break;
+
+        default:
+          term.writeln("Command not found. Type 'help'");
+      }
+    }
+
+  // Audio persistence and navigation overriding
+  function setupSmoothNavigation() {
+    const toggleCheckbox = document.querySelector('.toggle-switch input');
+    if (toggleCheckbox) {
+      toggleCheckbox.removeAttribute('onchange');
+      toggleCheckbox.addEventListener('change', function (e) {
+        e.preventDefault();
+        const targetPage = 'index.html';
+        const audio = document.getElementById('bg-music');
+        if (audio) {
+          sessionStorage.setItem('audioTime', audio.currentTime);
+          sessionStorage.setItem('audioPlaying', !audio.paused);
+        }
+        window.location.href = targetPage;
+      });
+    }
+  }
+
+  function initAudio() {
+    let audio = document.getElementById('bg-music');
+
+    if (!audio) {
+      audio = document.createElement('audio');
+      audio.id = 'bg-music';
+      audio.src = 'audio.mp3';
+      audio.loop = true;
+      document.body.appendChild(audio);
+    }
+
+    const savedTime = sessionStorage.getItem('audioTime');
+    const wasPlaying = sessionStorage.getItem('audioPlaying');
+
+    if (savedTime) {
+      audio.currentTime = parseFloat(savedTime);
+    }
+
+    const startAudio = function () {
+      audio.play().then(() => {
+        sessionStorage.setItem('audioPlaying', 'true');
+      }).catch((err) => console.log("Audio play failed:", err));
+      document.removeEventListener('click', startAudio);
+    };
+
+    if (wasPlaying === 'true') {
+      audio.play().then(() => {
+        sessionStorage.setItem('audioPlaying', 'true');
+      }).catch(() => {
+        document.addEventListener('click', startAudio);
+      });
+    } else {
+      document.addEventListener('click', startAudio);
+    }
+
+    setInterval(() => {
+      if (!audio.paused) {
+        sessionStorage.setItem('audioTime', audio.currentTime);
+      }
+    }, 1000);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setupSmoothNavigation();
+    initAudio();
+  });
+  </script>
+</body>
+
+</html>
