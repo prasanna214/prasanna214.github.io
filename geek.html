@@ -305,6 +305,16 @@
 
       term.attachCustomKeyEventHandler(ev => {
         if (!inputEnabled) return false;
+
+        // Prevent default tab behavior (losing focus)
+        if (ev.key === "Tab") {
+          if (ev.type === 'keydown') {
+            ev.preventDefault(); // Explicitly prevent default browser action
+            handleAutocomplete();
+          }
+          return false; // Tell xterm to not process it further
+        }
+
         if (ev.ctrlKey && ev.key === "c") {
           term.write("^C");
           input = "";
@@ -312,14 +322,87 @@
           return false;
         }
 
-        if (ev.ctrlKey && ev.key === "l") {
-          term.clear();
-          prompt();
+        // Ctrl+L or Cmd+K (mac) to clear terminal
+        if ((ev.ctrlKey && ev.key === "l") || (ev.metaKey && ev.key === "k")) {
+          // Only trigger on keydown to prevent double-firing
+          if (ev.type === 'keydown') {
+            term.clear();
+            // Move cursor to top left, clear screen entirely, then reprint prompt
+            term.write('\x1bc'); // Full terminal reset sequence
+            prompt();
+            term.write(input);
+          }
           return false;
         }
 
         return true;
       });
+
+      function handleAutocomplete() {
+        const commands = ["help", "ls", "cd", "cat", "clear"];
+        const words = input.split(" ");
+        const isCommand = words.length === 1;
+        const word = words[words.length - 1];
+
+        let matches = [];
+        let prefix = word;
+
+        if (isCommand) {
+          matches = commands.filter(c => c.startsWith(word));
+        } else {
+          let searchDir = currentDir;
+          if (word.includes("/")) {
+            const lastSlash = word.lastIndexOf("/");
+            let dirPart = word.substring(0, lastSlash);
+            prefix = word.substring(lastSlash + 1);
+
+            if (dirPart === "" || dirPart === "~") {
+              searchDir = "/";
+            } else {
+              searchDir = currentDir === "/" ? "/" + dirPart : currentDir + "/" + dirPart;
+            }
+            searchDir = searchDir.replace(/\/\//g, "/").replace(/\/$/, "");
+            if (searchDir === "") searchDir = "/";
+          }
+
+          let options = [];
+          if (searchDir === "/") {
+            options = ["reception/"];
+          } else if (searchDir === "/reception") {
+            options = ["invite.txt", "venue.txt", "schedule.txt", "dresscode.txt", "rsvp.txt"];
+          }
+
+          matches = options.filter(o => o.startsWith(prefix));
+        }
+
+        if (matches.length > 0) {
+          if (matches.length === 1) {
+            const completion = matches[0].substring(prefix.length);
+            input += completion;
+            term.write(completion);
+            if (!matches[0].endsWith("/")) {
+              input += " ";
+              term.write(" ");
+            }
+          } else {
+            let common = matches[0];
+            for (let i = 1; i < matches.length; i++) {
+              while (!matches[i].startsWith(common)) {
+                common = common.substring(0, common.length - 1);
+              }
+            }
+            if (common.length > prefix.length) {
+              const completion = common.substring(prefix.length);
+              input += completion;
+              term.write(completion);
+            } else {
+              term.write("\r\n" + matches.join("  "));
+              prompt();
+              term.write(input);
+            }
+          }
+        }
+      }
 
       term.onData(e => {
         if (!inputEnabled) return;
@@ -342,73 +425,6 @@
           if (input.length > 0) {
             input = input.slice(0, -1);
             term.write("\b \b");
-          }
-          return;
-        }
-
-        if (e === "\t" || e === "\x09") {
-          const commands = ["help", "ls", "cd", "cat", "clear"];
-          const words = input.split(" ");
-          const isCommand = words.length === 1;
-          const word = words[words.length - 1];
-
-          let matches = [];
-          let prefix = word;
-
-          if (isCommand) {
-            matches = commands.filter(c => c.startsWith(word));
-          } else {
-            let searchDir = currentDir;
-            if (word.includes("/")) {
-              const lastSlash = word.lastIndexOf("/");
-              let dirPart = word.substring(0, lastSlash);
-              prefix = word.substring(lastSlash + 1);
-
-              if (dirPart === "" || dirPart === "~") {
-                searchDir = "/";
-              } else {
-                searchDir = currentDir === "/" ? "/" + dirPart : currentDir + "/" + dirPart;
-              }
-              searchDir = searchDir.replace(/\/\//g, "/").replace(/\/$/, "");
-              if (searchDir === "") searchDir = "/";
-            }
-
-            let options = [];
-            if (searchDir === "/") {
-              options = ["reception/"];
-            } else if (searchDir === "/reception") {
-              options = ["invite.txt", "venue.txt", "schedule.txt", "dresscode.txt", "rsvp.txt"];
-            }
-
-            matches = options.filter(o => o.startsWith(prefix));
-          }
-
-          if (matches.length > 0) {
-            if (matches.length === 1) {
-              const completion = matches[0].substring(prefix.length);
-              input += completion;
-              term.write(completion);
-              if (!matches[0].endsWith("/")) {
-                input += " ";
-                term.write(" ");
-              }
-            } else {
-              let common = matches[0];
-              for (let i = 1; i < matches.length; i++) {
-                while (!matches[i].startsWith(common)) {
-                  common = common.substring(0, common.length - 1);
-                }
-              }
-              if (common.length > prefix.length) {
-                const completion = common.substring(prefix.length);
-                input += completion;
-                term.write(completion);
-              } else {
-                term.write("\r\n" + matches.join("  "));
-                prompt();
-                term.write(input);
-              }
-            }
           }
           return;
         }
@@ -529,6 +545,7 @@
 
         case "clear":
           term.clear();
+          term.write('\x1bc'); // Full terminal reset sequence
           break;
 
         default:
