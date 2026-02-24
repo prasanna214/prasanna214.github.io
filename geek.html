@@ -37,10 +37,34 @@
       z-index: 1;
       background: rgba(0, 0, 0, 0.75);
       padding: 10px;
+      /* Add more padding to the bottom to explicitly balance out the top */
+      padding-bottom: 25px;
       border-radius: 12px;
       box-shadow: 0 0 30px rgba(0, 255, 65, 0.2);
       overflow: hidden;
       box-sizing: border-box;
+    }
+
+    /* Geek Mode Scrollbar styling (Hidden) */
+    #terminal ::-webkit-scrollbar {
+      width: 0px;
+      height: 0px;
+      background: transparent;
+    }
+
+    #terminal ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #terminal ::-webkit-scrollbar-thumb {
+      background: transparent;
+    }
+
+    /* Padding for xterm container */
+    .xterm {
+      height: 100%;
+      box-sizing: border-box;
+      padding-bottom: 10px; /* Add bottom padding to terminal text viewport */
     }
 
     .toggle-container {
@@ -132,12 +156,8 @@
         height: 90%;
         max-height: 90vh;
         padding: 5px;
+        padding-bottom: 25px; /* Added matching bottom padding for mobile terminal container */
       }
-    }
-
-    .xterm {
-      height: 100%;
-      box-sizing: border-box;
     }
   </style>
 </head>
