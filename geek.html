@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wedding Invitation</title>
+  <title>Wedding Reception | Mizar & Alcor</title>
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
   <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
@@ -45,19 +45,16 @@
       box-sizing: border-box;
     }
 
-    /* Geek Mode Scrollbar styling (Hidden) */
-    #terminal ::-webkit-scrollbar {
+    /* Geek Mode Scrollbar styling (Globally Hidden) */
+    ::-webkit-scrollbar {
+      display: none;
       width: 0px;
       height: 0px;
-      background: transparent;
     }
 
-    #terminal ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    #terminal ::-webkit-scrollbar-thumb {
-      background: transparent;
+    * {
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
     }
 
     /* Padding for xterm container */
@@ -69,7 +66,7 @@
     }
 
     .toggle-container {
-      position: fixed;
+      position: absolute;
       top: 20px;
       right: 20px;
       z-index: 100;
@@ -128,6 +125,7 @@
 
     .slider {
       background-color: rgba(0, 255, 65, 0.4);
+      box-shadow: 0 0 15px rgba(0, 255, 65, 0.6); /* Slightly stronger track glow when fully active */
     }
 
     .slider:before {
@@ -135,7 +133,7 @@
     }
 
     .toggle-switch input:focus+.slider {
-      box-shadow: 0 0 10px #00ff41;
+      box-shadow: 0 0 16px #00ff41;
     }
 
     @keyframes glow-terminal {
@@ -251,22 +249,22 @@
     /* ================= BOOT LOG ================= */
 
     const bootLogs = [
-      "[   13.030000 ] Linux version 6.1.0-wedding (gcc 13.2.0)",
-      "[   13.030001 ] Command line: init=/sbin/systemd",
-      "[   13.031313 ] ACPI: Power coupling stable. Dynamic load balance between nodes: perfectly synced.",
-      "[   13.033313 ] systemd[1]: systemd 313 running in celebration mode.",
+      "[    0.000000 ] Linux version 6.1.0-wedding (gcc 13.2.0)",
+      "[    0.000001 ] Command line: init=/sbin/systemd",
+      "[    0.001313 ] ACPI: Power coupling stable. Dynamic load balance between nodes: perfectly synced.",
+      "[    0.003313 ] systemd[1]: systemd 313 running in celebration mode.",
       "",
-      "[   13.133313 ] systemd[1]: Starting compatibility-check.service...",
-      "[   13.303313 ] compatibility-check[42]: Status: Beyond optimal. Synergy level: 100%.",
+      "[    0.133313 ] systemd[1]: Starting compatibility-check.service...",
+      "[    0.303313 ] compatibility-check[42]: Status: Beyond optimal. Synergy level: 100%.",
       "",
-      "[   13.333313 ] compatibility-check[42]: \u001b[31m\u001b[5mWARNING:\u001b[0m Single status deprecated and marked for deletion ♥",
+      "[    0.333313 ] compatibility-check[42]: \u001b[31m\u001b[5mWARNING:\u001b[0m Single status deprecated and marked for deletion ♥",
       "",
-      "[   13.553313 ] systemd[1]: Starting engagement.service...",
-      "[   13.883313 ] engagement.service: active (committed)",
+      "[    0.553313 ] systemd[1]: Starting engagement.service...",
+      "[    0.883313 ] engagement.service: active (committed)",
       "",
-      "[   16.030000 ] systemd[1]: Starting reception.service...",
-      "[   16.030313 ] reception.service: Guests invited to Reception Ceremony.",
-      "[   16.303313 ] systemd[1]: Startup finished successfully.",
+      "[    1.030000 ] systemd[1]: Starting reception.service...",
+      "[    1.030313 ] reception.service: Guests invited to Reception Ceremony.",
+      "[    1.303313 ] systemd[1]: Startup finished successfully.",
       ""
     ];
 
@@ -294,7 +292,7 @@
 
     const fileContents = {
       "invite.txt": "You are invited to the Wedding Reception of\n\nPrasanna ❤️ Jaswanth\n\nWe would be honored by your presence.",
-      "venue.txt": "Venue: SS Function Hall\nAddress: Ubalanka",
+      "venue.txt": "Venue: SS Function Hall\nAddress: Ubalanka\nMap Link: https://maps.app.goo.gl/7WDtS5qKhP9vLoWbA",
       "schedule.txt": "Date: Sunday, 15th March\nTime: 11:00 AM",
       "dresscode.txt": "Dress Code: Traditional / Formal",
       "rsvp.txt": "Kindly confirm your presence at the following link:\nhttps://docs.google.com/forms/d/e/1FAIpQLSe7vhfodFpy264ff0j1lU_ma7Anygdblk1I6apoLtxE6Icw9w/viewform\n\nWe look forward to celebrating with you!"
@@ -310,7 +308,6 @@
       term.writeln("Available commands:");
       term.writeln("help        - Show available commands");
       term.writeln("ls          - List files");
-      term.writeln("cd          - Enter directory");
       term.writeln("cat         - Read file");
       term.writeln("clear       - Clear screen");
     }
@@ -323,6 +320,12 @@
     }
 
     function startTerminal() {
+      const now = new Date();
+      const timeString = now.toDateString() + " " + now.toTimeString().split(" ")[0];
+      term.writeln(`Last login: ${timeString} on console`);
+      term.writeln("Welcome to Mizar & Alcor OS (guest user)");
+      term.writeln("");
+      
       showHelp();
       prompt();
 
@@ -362,7 +365,7 @@
       });
 
       function handleAutocomplete() {
-        const commands = ["help", "ls", "cd", "cat", "clear"];
+        const commands = ["help", "ls", "cat", "clear"];
         const words = input.split(" ");
         const isCommand = words.length === 1;
         const word = words[words.length - 1];
@@ -390,8 +393,6 @@
 
           let options = [];
           if (searchDir === "/") {
-            options = ["reception/"];
-          } else if (searchDir === "/reception") {
             options = ["invite.txt", "venue.txt", "schedule.txt", "dresscode.txt", "rsvp.txt"];
           }
 
@@ -506,34 +507,9 @@
           }
 
           if (lsPath === "" || lsPath === "/") {
-            term.writeln("reception/");
-          } else if (lsPath === "/reception") {
             term.writeln("invite.txt  venue.txt  schedule.txt  dresscode.txt  rsvp.txt");
           } else {
             term.writeln(`ls: cannot access '${lsTarget}': No such file or directory`);
-          }
-          break;
-
-        case "cd":
-          let target = args[1];
-          if (!target || target === "~") {
-            currentDir = "/";
-          } else {
-            target = target.replace(/\/$/, "");
-            let nextDir = currentDir === "/" ? "/" + target : currentDir + "/" + target;
-            nextDir = nextDir.replace(/\/\//g, "/");
-
-            if (nextDir === "/reception") {
-              if (currentDir !== "/reception") {
-                currentDir = "/reception";
-              }
-            } else if (nextDir === "/" || target === "..") {
-              currentDir = "/";
-            } else if (target === ".") {
-              // do nothing
-            } else {
-              term.writeln(`cd: no such file or directory: ${args[1]}`);
-            }
           }
           break;
 
@@ -544,22 +520,16 @@
             break;
           }
 
-          let resolvedPath = currentDir === "/" ? "/" + file : currentDir + "/" + file;
-          resolvedPath = resolvedPath.replace(/\/\//g, "/");
+          let fileName = file;
+          // Strip leading slash if they try an absolute path like /invite.txt
+          if (fileName.startsWith("/")) {
+            fileName = fileName.substring(1);
+          }
 
-          if (resolvedPath === "/reception" || resolvedPath === "/reception/") {
-            term.writeln(`cat: ${file}: Is a directory`);
-          } else if (resolvedPath.startsWith("/reception/")) {
-            const fileName = resolvedPath.replace("/reception/", "");
-            if (fileName === "") {
-              term.writeln(`cat: ${file}: Is a directory`);
-            } else if (fileContents[fileName]) {
-              const lines = fileContents[fileName].split("\n");
-              for (let line of lines) {
-                term.writeln(line);
-              }
-            } else {
-              term.writeln(`cat: ${file}: No such file or directory`);
+          if (fileContents[fileName]) {
+            const lines = fileContents[fileName].split("\n");
+            for (let line of lines) {
+              term.writeln(line);
             }
           } else {
             term.writeln(`cat: ${file}: No such file or directory`);
