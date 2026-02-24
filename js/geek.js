@@ -107,7 +107,6 @@ function startTerminal() {
   const timeString =
     now.toDateString() + " " + now.toTimeString().split(" ")[0];
   term.writeln(`Last login: ${timeString} on console`);
-  term.writeln("Welcome to Mizar & Alcor OS (guest user)");
   term.writeln("");
 
   showHelp();
