@@ -51,9 +51,15 @@ function initAudio() {
 
   if (savedTime) {
     audio.currentTime = savedTime;
+    audio.addEventListener("loadedmetadata", () => {
+      audio.currentTime = savedTime;
+    });
   }
 
   const startAudio = function () {
+    if (savedTime && Math.abs(audio.currentTime - savedTime) > 1) {
+      audio.currentTime = savedTime;
+    }
     audio
       .play()
       .then(() => {
@@ -62,12 +68,16 @@ function initAudio() {
       .catch((err) => console.log("Audio play failed:", err));
   };
 
+  // Check if user has already opened the envelope
+  const hasOpenedEnvelope = sessionStorage.getItem("envelopeOpened") === "true";
+
   if (overlay) {
     overlay.addEventListener("click", function () {
       const envelope = document.getElementById("envelope");
       if (envelope) {
         envelope.classList.add("open");
       }
+      sessionStorage.setItem("envelopeOpened", "true");
 
       startAudio();
 
@@ -79,7 +89,7 @@ function initAudio() {
       }, 600);
     });
 
-    if (wasPlaying) {
+    if (wasPlaying || hasOpenedEnvelope) {
       overlay.style.display = "none";
       audio
         .play()
@@ -95,12 +105,25 @@ function initAudio() {
       overlay.style.opacity = "1";
     }
   } else {
-    // Basic setup without overlay (e.g., geek mode)
+    // Safari will block Geek Mode audio unless user clicks.
+    // We add a full screen transparent div to catch the first tap.
+    const safariCatcher = document.createElement("div");
+    safariCatcher.style.position = "fixed";
+    safariCatcher.style.top = "0";
+    safariCatcher.style.left = "0";
+    safariCatcher.style.width = "100%";
+    safariCatcher.style.height = "100%";
+    safariCatcher.style.zIndex = "9999";
+    safariCatcher.style.cursor = "pointer";
+    safariCatcher.style.display = "none";
+    document.body.appendChild(safariCatcher);
+
     const playHandler = function () {
       startAudio();
-      document.removeEventListener("click", playHandler);
-      document.removeEventListener("touchstart", playHandler);
+      safariCatcher.remove();
     };
+    safariCatcher.addEventListener("click", playHandler);
+    safariCatcher.addEventListener("touchstart", playHandler);
 
     if (wasPlaying) {
       audio
@@ -109,12 +132,10 @@ function initAudio() {
           audioState.isPlaying = true;
         })
         .catch(() => {
-          document.addEventListener("click", playHandler);
-          document.addEventListener("touchstart", playHandler);
+          safariCatcher.style.display = "block";
         });
     } else {
-      document.addEventListener("click", playHandler);
-      document.addEventListener("touchstart", playHandler);
+      safariCatcher.style.display = "block";
     }
   }
 
