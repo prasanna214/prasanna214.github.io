@@ -74,7 +74,7 @@ const fileContents = {
   "invite.txt":
     "You are invited to the Wedding Reception of\n\nPrasanna ❤️ Jaswanth\n\nWe would be honored by your presence.",
   "venue.txt":
-    "Venue: SS Function Hall\nAddress: Ubalanka\nMap Link: https://maps.app.goo.gl/7WDtS5qKhP9vLoWbA",
+    "Venue: SS Function Hall\nAddress: Vubalanka\nMap Link: https://maps.app.goo.gl/7CFCJC68ZfC8okMSA",
   "schedule.txt": "Date: Sunday, 15th March\nTime: 11:00 AM",
   "dresscode.txt": "Dress Code: Traditional / Formal",
   "rsvp.txt":
@@ -93,6 +93,7 @@ function showHelp() {
   term.writeln("ls          - List files");
   term.writeln("cat         - Read file");
   term.writeln("clear       - Clear screen");
+  term.writeln("exit        - Exit geek mode");
 }
 
 function clearLine() {
@@ -148,7 +149,7 @@ function startTerminal() {
   });
 
   function handleAutocomplete() {
-    const commands = ["help", "ls", "cat", "clear"];
+    const commands = ["help", "ls", "cat", "clear", "exit"];
     const words = input.split(" ");
     const isCommand = words.length === 1;
     const word = words[words.length - 1];
@@ -328,6 +329,16 @@ function runCommand(cmd) {
         }
       } else {
         term.writeln(`cat: ${file}: No such file or directory`);
+      }
+      break;
+
+    case "exit":
+      const toggle = document.querySelector(".toggle-switch input");
+      if (toggle) {
+        toggle.checked = false;
+        toggle.dispatchEvent(new Event("change"));
+      } else {
+        window.location.href = "index.html";
       }
       break;
 
