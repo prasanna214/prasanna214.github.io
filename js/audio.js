@@ -99,6 +99,7 @@ function initAudio() {
     const playHandler = function () {
       startAudio();
       document.removeEventListener("click", playHandler);
+      document.removeEventListener("touchstart", playHandler);
     };
 
     if (wasPlaying) {
@@ -109,9 +110,11 @@ function initAudio() {
         })
         .catch(() => {
           document.addEventListener("click", playHandler);
+          document.addEventListener("touchstart", playHandler);
         });
     } else {
       document.addEventListener("click", playHandler);
+      document.addEventListener("touchstart", playHandler);
     }
   }
 

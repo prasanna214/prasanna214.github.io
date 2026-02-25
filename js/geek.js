@@ -112,6 +112,7 @@ function startTerminal() {
 
   showHelp();
   prompt();
+  term.focus();
 
   term.attachCustomKeyEventHandler((ev) => {
     if (!inputEnabled) return false;

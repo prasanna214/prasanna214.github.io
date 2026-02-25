@@ -107,6 +107,8 @@ html {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
   padding: 60px 20px;
   perspective: 1000px;
 }
